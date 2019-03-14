@@ -1,5 +1,8 @@
 package com.journaldev.bootifulmongodb.controller;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -8,10 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.journaldev.bootifulmongodb.dal.UserDAL;
 import com.journaldev.bootifulmongodb.dal.UserRepository;
+import com.journaldev.bootifulmongodb.model.Clase1;
 import com.journaldev.bootifulmongodb.model.User;
 
 @RestController
@@ -95,6 +102,42 @@ public class UserController {
 			return "Key added";
 		} else {
 			return "User not found.";
+		}
+	}
+	
+//	 
+	
+	@RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+	public String uploadFileHandler(@RequestBody Clase1 user) {
+
+		if (!user.getFile().isEmpty()) {
+			try {
+				byte[] bytes = user.getFile().getBytes();
+
+				// Creating the directory to store file
+				String rootPath = System.getProperty("catalina.home");
+				File dir = new File(rootPath + File.separator + "tmpFiles");
+				if (!dir.exists())
+					dir.mkdirs();
+
+				// Create the file on server
+				File serverFile = new File(dir.getAbsolutePath()
+						+ File.separator + user.getName());
+				BufferedOutputStream stream = new BufferedOutputStream(
+						new FileOutputStream(serverFile));
+				stream.write(bytes);
+				stream.close();
+				System.out.println("Server File Location="
+						+ serverFile.getAbsolutePath());
+//				logger.info();
+
+				return "You successfully uploaded file=" +  user.getName();
+			} catch (Exception e) {
+				return "You failed to upload " +  user.getName() + " => " + e.getMessage();
+			}
+		} else {
+			return "You failed to upload " +  user.getName()
+					+ " because the file was empty.";
 		}
 	}
 }
